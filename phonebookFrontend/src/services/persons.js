@@ -2,7 +2,7 @@
 import axios from "axios";
 const baseUrl = import.meta.env.VITE_API_URL;
 
-fetch(`${baseUrl}/api/your-endpoint`)
+fetch(`${baseUrl}/api/persons`)
   .then(res => res.json())
   .then(data => console.log(data));
 
