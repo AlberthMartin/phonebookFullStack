@@ -1,4 +1,5 @@
 const express = require("express")
+const cors = require('cors');
 
 const morgan = require("morgan")
 
@@ -9,6 +10,10 @@ morgan.token('body', (req) => {
 
 const app = express()
 
+app.use(cors({
+    origin: 'https://phonebookfullstack-qcwt.onrender.com'
+  }));
+  
 
 app.use(express.static('dist'))
 
