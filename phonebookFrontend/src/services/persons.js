@@ -1,6 +1,6 @@
 //Service for managing the database of people in the app
 import axios from "axios";
-const baseUrl = '/api/notes'
+const baseUrl = '/api/persons'
 
 
 const getAll = () =>{
