@@ -1,6 +1,7 @@
 //Service for managing the database of people in the app
 import axios from "axios";
-const baseUrl = "https://phonebook-backend-gjnp.onrender.com"
+const baseUrl = '/api/notes'
+
 
 const getAll = () =>{
     return axios.get(baseUrl)
