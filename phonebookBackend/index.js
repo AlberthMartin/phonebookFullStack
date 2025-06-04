@@ -12,7 +12,7 @@ const app = express()
 const cors = require('cors')
 
 app.use(cors({
-    origin: 'https://phonebookfullstack-qcwt.onrender.com/'
+    origin: 'https://phonebook-backend-gjnp.onrender.com'
   }));
 
 app.use(express.static('dist'))
