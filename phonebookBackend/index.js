@@ -9,11 +9,6 @@ morgan.token('body', (req) => {
 
 const app = express()
 
-const cors = require('cors')
-
-app.use(cors({
-    origin: 'https://phonebook-backend-gjnp.onrender.com'
-  }));
 
 app.use(express.static('dist'))
 
