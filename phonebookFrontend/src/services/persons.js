@@ -1,7 +1,10 @@
 //Service for managing the database of people in the app
 import axios from "axios";
-const baseUrl = '/api/persons'
+const baseUrl = import.meta.env.VITE_API_URL;
 
+fetch(`${baseUrl}/api/your-endpoint`)
+  .then(res => res.json())
+  .then(data => console.log(data));
 
 const getAll = () =>{
     return axios.get(baseUrl)

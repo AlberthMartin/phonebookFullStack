@@ -11,7 +11,10 @@ const app = express()
 
 const cors = require('cors')
 
-app.use(cors())
+app.use(cors({
+    origin: 'https://phonebookfullstack-qcwt.onrender.com/'
+  }));
+
 app.use(express.static('dist'))
 
 app.use(express.json())
