@@ -1,117 +1,119 @@
+require("dotenv").config()
 const express = require("express")
-const cors = require('cors');
 
-const morgan = require("morgan")
-
-
-morgan.token('body', (req) => {
-    return req.method === 'POST' ? JSON.stringify(req.body) : '';
-  });
 
 const app = express()
-
-app.use(cors({
-    origin: 'https://phonebookfullstack-qcwt.onrender.com'
-  }));
-  
-
-//app.use(express.static('dist'))
+app.use(express.static('build'))
 
 app.use(express.json())
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
+const Person = require("./models/person")
 
-let persons = [
-    { 
-        "id": "1",
-        "name": "Arto Hellas", 
-        "number": "040-123456"
-      },
-      { 
-        "id": "2",
-        "name": "Ada Lovelace", 
-        "number": "39-44-5323523"
-      },
-      { 
-        "id": "3",
-        "name": "Dan Abramov", 
-        "number": "12-43-234345"
-      },
-      { 
-        "id": "4",
-        "name": "Mary Poppendieck", 
-        "number": "39-23-6423122"
-      }
-]
-
-
-
+//Get the people from the database
 app.get("/api/persons", (request, response) =>{
-    response.json(persons)
+    Person.find({}).then(persons=>{
+        response.json(persons)
+    })
 })
 
-app.get("/info", (req, res)=>{
-    res.send(`
-        <p>Phonebook has info for ${persons.length} people </p>
-        <p>${Date()}</p>
-        `)
-})
+//Add a new person to the database
+app.post("/api/persons", async (req, res, next)=>{
 
-app.get("/api/persons/:id", (req, res) =>{
-    const id = req.params.id
-    const person = persons.find(person => person.id === id)
-
-    if(person){
-        res.json(person)
-    }else{
-        res.status(404).end()
-    }
-})
-
-app.delete("/api/persons/:id", (req,res)=>{
-    const id = req.params.id
-    persons = persons.filter(pers => pers.id !== id)
-
-    res.status(204).end()
-})
-
-
-app.post("/api/persons", (req, res)=>{
-    const body = req.body
+    const {name, number} = req.body
 
     //if number or name is missing
-    if(!body.number || !body.name){
+    if(!number || !name){
         return res.status(400).json({
             error: "number or name missing"
         })
     }
-    //if name already exists in the data
-    if(persons.find(pers => pers.name === body.name)){
-        return res.status(400).json({
-            error: "name must be unique"
+
+    //Check if the user exists in the database:
+    const existingPerson = await Person.findOne({name: name})
+
+    //if the person exists
+    if(existingPerson){
+        //Update number
+        existingPerson.number = number
+        const updated = await existingPerson.save()
+        return res.json(updated)
+    }
+        
+    //A new person is being added
+    else{
+        //Create the new person in the phonebook
+        const newPerson = new Person({
+            name: name,
+            number: number
+         })
+
+        newPerson.save().then(savedPerson =>{
+            res.json(savedPerson)
         })
+        .catch(error => next(error))
     }
-    
-    //Create the new person in the phonebook
-    const person = {
-        //random number between 10-444
-        id: String(Math.floor(Math.random()*(444-10+1)+10)),
-        name: body.name,
-        number: body.number
-    }
-
-    persons = persons.concat(person)
-    
-    res.json(person)
-
 
 })
 
-const generateId = () => {
-    const maxId = notes.length > 0 
-    ? Math.max(...notes.map(n=>Number(n.id)))
-    : 0
-    return String(maxId+1)
+//Get an individual person
+app.get("/api/persons/:id", (req, res, next)=>{
+    Person.findById(req.params.id)
+        .then(person=>{
+            if(person){
+                res.json(person)
+            }else{
+                res.status(404).end()
+            }
+         })
+            .catch(error => next(error))
+})
+
+app.delete("/api/persons/:id", (req, res, next) =>{
+    Person.findByIdAndDelete(req.params.id)
+        .then(result =>{
+            res.status(204).end()
+        })
+        .catch(error => next(error))
+})
+
+app.put("/api/persons/:id", (req, res, next) =>{
+    const {name, number} = req.body
+
+    Person.findById(req.params.id)
+        .then(person =>{
+            if(!person){
+                return res.status(404).end()
+            }
+
+            person.name = name
+            person.number = number
+
+            return person.save().then((updatedPerson) =>{
+                res.json(updatedPerson)
+            })
+        })
+        .catch(error => next(error))
+})
+
+
+const unknownEndpoint = (req, res) =>{
+    res.status(404).send({error: "unknown endpoint"})
 }
+
+app.use(unknownEndpoint)
+
+const errorHandler = (error, req, res, next)=>{
+    console.error(error.message)
+
+    if(error.name === "CastError"){
+        return res.status(400).send({error: "malformatted id"})
+    }
+    else if (error.name === "ValidationError") {
+        return res.status(400).json({error: error.message})
+    }
+    next(error)
+}
+
+app.use(errorHandler)
 
 
 const PORT = process.env.PORT || 3001
