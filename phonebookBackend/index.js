@@ -11,7 +11,7 @@ const Person = require("./models/person")
 const cors = require('cors');
 
 app.use(cors({
-    origin: 'http://localhost:5174'
+    origin: 'http://localhost:5173'
   }));
 
 //Get the people from the database
